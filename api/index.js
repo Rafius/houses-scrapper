@@ -1,10 +1,10 @@
 const express = require("express");
 const bodyParser = require("body-parser");
+const cors = require("cors");
+const mysql = require("mysql");
 
 const app = express();
-const cors = require("cors");
 const jsonParser = bodyParser.json();
-const mysql = require("mysql");
 
 app.use(cors());
 app.listen(80, function () {

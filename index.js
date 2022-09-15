@@ -1,4 +1,3 @@
-require("dotenv").config();
 const { chromium } = require("playwright-chromium");
 const { saveHouses, savePrices } = require("./fotocasa");
 
