@@ -1,22 +1,16 @@
 import "./App.css";
-import {
-  LineChart,
-  Line,
-  CartesianGrid,
-  XAxis,
-  YAxis,
-  Tooltip
-} from "recharts";
+import Chart from "./Chart";
+
 import useHouses from "./useHouses";
 
 function App() {
   const { housesWithPrices } = useHouses();
 
-  console.log(housesWithPrices.filter(({ price }) => price.length > 2));
+  console.log(housesWithPrices.filter(({ price }) => price.length > 1));
   return (
     <div className="container">
       {housesWithPrices
-        .slice(0, 100)
+        // .slice(0, 100)
         .map(
           ({
             description,
@@ -37,15 +31,19 @@ function App() {
               };
             });
 
-            const priceChanges =
-              Number(price[0]?.price) - Number(price?.at(-1)?.price).toFixed(2);
+            let priceChanges;
+            if (price.length > 1)
+              priceChanges =
+                Number(price[0]?.price) -
+                Number(price?.at(-1)?.price).toFixed(2);
 
+            // if (!priceChanges) return null
             return (
               <div className="house" key={id}>
+                <img src={image} alt={description} loading="lazy" />
                 <a href={link}>
                   {title}, {surface} m²
                 </a>
-                <img src={image} alt={description} loading="lazy" />
                 <p>Precio: {price?.at(-1).price}K €</p>
                 <p>
                   Precio por m²:{" "}
@@ -62,20 +60,7 @@ function App() {
                 </p>
                 <p>El precio ha bajado: {priceChanges}K €</p>
                 <p>{!hasGarage && "No"} Tiene garaje </p>
-                {priceChanges > 0 && (
-                  <LineChart
-                    width={600}
-                    height={300}
-                    data={data}
-                    margin={{ top: 5, right: 20, bottom: 5, left: 0 }}
-                  >
-                    <Line type="monotone" dataKey="uv" stroke="#8884d8" />
-                    <CartesianGrid stroke="#ccc" />
-                    <XAxis dataKey="name" />
-                    <YAxis dateKey="date" domain={[100, 600]} />
-                    <Tooltip />
-                  </LineChart>
-                )}
+                <Chart data={data} priceChanges={priceChanges} />
               </div>
             );
           }

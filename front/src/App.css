@@ -18,10 +18,15 @@
   text-decoration: none;
   position: relative;
 }
+
 .house p {
   margin: 5px;
 }
 
 .house img {
   border-radius: 13px 13px 0 0;
+}
+
+.house a {
+  color: black;
 }

@@ -1,5 +1,5 @@
 const { chromium } = require("playwright-chromium");
-const { saveHouses, savePrices } = require("./fotocasa");
+const { saveHouses, savePrices } = require("./api");
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -11,6 +11,8 @@ const millisToMinutesAndSeconds = (millis) => {
 
 const url =
   "https://www.fotocasa.es/es/comprar/viviendas/malaga-provincia/todas-las-zonas/piscina/l?maxPrice=300000&searchArea=42nh5hi5ethe969Bn7qDl7qDnh4Qo-iFivuUg1ixvEx9mH1ry3C313xCs1xgB__tTkxhhCzsqD4z64Eywqfpx5Hv8_B67iOki1F08vSgnrXr13D_vskCg-y9Bot92BzjlyGlj836Cqw1Q5oiuE403mB9mrNkvs32B2tkxgDx--3GspqoR3pqNjn3Jp0wa1xqVzjkqM9i88F9-x97Bs80xOyh75Lg8whD6tqkCr7Flit_k8F";
+// "https://www.fotocasa.es/es/comprar/viviendas/malaga-provincia/todas-las-zonas/l";
+
 const scrapper = async () => {
   const start = new Date().getTime();
 
@@ -26,7 +28,7 @@ const scrapper = async () => {
   await page.click('[data-testid="TcfAccept"]');
   const houses = [];
 
-  const numberOfPages = 66;
+  const numberOfPages = 67;
   for (let i = 1; i <= numberOfPages; i++) {
     // Scroll down to see all element
 
@@ -75,22 +77,23 @@ const scrapper = async () => {
     nextPage.at(-1)?.click();
     console.log("current page", i, houses.length);
   }
-  debugger;
+
   const ids = houses.map(({ id }) => id);
   const filteredHouses = houses
     .filter(({ id }, index) => !ids.includes(id, index + 1) && id)
     .map((house) => ({
       ...house,
       description: house.description?.slice(0, 255),
-      surface: house.surface?.slice(0, 2)
+      surface: house.surface?.replace(/[\D]/g, "")
     }));
 
-  debugger;
   saveHouses(filteredHouses);
   savePrices(filteredHouses);
 
   const end = new Date().getTime();
   const time = end - start;
+
+  filteredHouses.map(({ surface }) => console.log(surface));
   console.log("Execution time: " + millisToMinutesAndSeconds(time));
 };
 
