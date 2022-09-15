@@ -1,0 +1,27 @@
+.container {
+  display: grid;
+  padding: 5rem;
+  gap: 10rem;
+  grid-auto-rows: 25rem;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  height: 100%;
+  font-size: 20px;
+}
+
+.house {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-radius: 15px;
+  width: 300px;
+  min-height: 300px;
+  text-decoration: none;
+  position: relative;
+}
+.house p {
+  margin: 5px;
+}
+
+.house img {
+  border-radius: 13px 13px 0 0;
+}

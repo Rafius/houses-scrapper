@@ -1,0 +1,9 @@
+TODO:
+Hacer tabla de precios, y que vayan con el id de la casa.
+
+DONE:
+Conseguir los links de cada casa.
+Conseguir el id de cada casa.
+Guardar casas del e2e en base de datos.
+Añadir paginacion.
+Ir a la siguiente pagina de fotocasa.
