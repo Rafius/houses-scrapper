@@ -1,11 +1,11 @@
 .container {
   display: grid;
-  padding: 5rem;
-  gap: 10rem;
-  grid-auto-rows: 25rem;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 7rem;
+  grid-auto-rows: 43rem;
+  grid-template-columns: repeat(auto-fill, minmax(600px, 1fr));
   height: 100%;
   font-size: 20px;
+  margin: 5rem;
 }
 
 .house {
@@ -14,9 +14,7 @@
   justify-content: center;
   border-radius: 15px;
   width: 300px;
-  min-height: 300px;
   text-decoration: none;
-  position: relative;
 }
 
 .house p {

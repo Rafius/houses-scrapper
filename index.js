@@ -1,5 +1,5 @@
 const { chromium } = require("playwright-chromium");
-const { saveHouses, savePrices } = require("./api");
+const { saveHouses } = require("./api");
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -26,10 +26,11 @@ const scrapper = async () => {
 
   // Accept cookies
   await page.click('[data-testid="TcfAccept"]');
-  const houses = [];
 
   const numberOfPages = 67;
   for (let i = 1; i <= numberOfPages; i++) {
+    const houses = [];
+
     // Scroll down to see all element
 
     for (let j = 0; j <= 20; j++) {
@@ -41,7 +42,7 @@ const scrapper = async () => {
 
     const prices = await page.$$(".re-CardPrice");
     const titles = await page.$$(".re-CardTitle");
-    const features = await page.$$(".re-CardFeaturesWithIcons-wrapper");
+    // const features = await page.$$(".re-CardFeaturesWithIcons-wrapper");
     const descriptions = await page.$$(".re-CardDescription-text");
     const phones = await page.$$(".re-CardContact-phone");
     const surface = await page.$$(
@@ -62,38 +63,35 @@ const scrapper = async () => {
 
     for (let k = 0; k < prices.length; k++) {
       houses.push({
-        id: Number(uniqueHrefs[k]?.replace(/[\D]/g, "")?.slice(-9)),
         price: await prices[k]?.textContent(),
         title: await titles[k]?.textContent(),
         image: await images[k],
-        feature: await features[k]?.textContent(),
         description: await descriptions[k]?.textContent(),
         phone: await phones[k]?.textContent(),
         link: uniqueHrefs[k],
         surface: await surface[k]?.textContent()
       });
     }
-    const nextPage = await page.$$(".sui-MoleculePagination-item");
-    nextPage.at(-1)?.click();
-    console.log("current page", i, houses.length);
-  }
 
-  const ids = houses.map(({ id }) => id);
-  const filteredHouses = houses
-    .filter(({ id }, index) => !ids.includes(id, index + 1) && id)
-    .map((house) => ({
+    const newHouses = houses.map((house) => ({
       ...house,
       description: house.description?.slice(0, 255),
-      surface: house.surface?.replace(/[\D]/g, "")
+      surface: house.surface?.replace(/[\D]/g, ""),
+      price: house.price.slice(0, 6),
+
+      date: new Date().toISOString().slice(0, 19).replace("T", " ")
     }));
 
-  saveHouses(filteredHouses);
-  savePrices(filteredHouses);
+    saveHouses(newHouses);
+    const nextPage = await page.$$(".sui-MoleculePagination-item");
+    nextPage.at(-1)?.click();
+
+    console.log("current page", i, houses.length);
+  }
 
   const end = new Date().getTime();
   const time = end - start;
 
-  filteredHouses.map(({ surface }) => console.log(surface));
   console.log("Execution time: " + millisToMinutesAndSeconds(time));
 };
 

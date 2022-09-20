@@ -23,21 +23,21 @@ db.connect(function (err) {
   if (err) throw err;
 });
 
-const postHouses = (newHouses) => {
+const saveHouses = (newHouses) => {
   db.query(
-    "INSERT INTO `houses`.`information` (`id`, `title`, `link`, `detail`, `description`, `surface`, `image`, `hasGarage`) VALUES ?",
+    "INSERT INTO `houses`.`information` (`price`, `date`, `title`, `link`, `detail`, `description`, `surface`, `image`) VALUES ?",
     [
       newHouses.map(
-        ({
-          id,
+        ({ price, date, title, link, detail, description, surface, image }) => [
+          price,
+          date,
           title,
           link,
           detail,
           description,
           surface,
-          image,
-          hasGarage
-        }) => [id, title, link, detail, description, surface, image, hasGarage]
+          image
+        ]
       )
     ],
     (err, result) => {
@@ -45,30 +45,6 @@ const postHouses = (newHouses) => {
       console.log(result.message);
     }
   );
-};
-
-const saveHouses = (houses) => {
-  postHouses(houses);
-};
-
-const postPrices = (prices) => {
-  db.query(
-    "INSERT INTO `houses`.`price` (`id`, `price`, `date`) VALUES ?",
-    [prices.map(({ id, price, date }) => [id, price, date])],
-    (err, result) => {
-      if (err) throw err;
-      console.log(result.message);
-    }
-  );
-};
-
-const savePrices = (prices) => {
-  const housesPrice = prices.map(({ id, price }) => ({
-    id,
-    price: price.replace("€", ""),
-    date: new Date().toISOString().slice(0, 19).replace("T", " ")
-  }));
-  postPrices(housesPrice);
 };
 
 app.post("/saveHouses", jsonParser, async (req, res) => {
@@ -87,18 +63,6 @@ app.get("/getHouses", jsonParser, async (_, res) => {
   });
 });
 
-app.get("/getPrices", jsonParser, async (_, res) => {
-  const sql = "select * from price";
-  db.query(sql, (err, result) => {
-    if (err) {
-      res.flash("error", err);
-    } else {
-      res.send({ status: "Success", prices: result });
-    }
-  });
-});
-
 module.exports = {
-  saveHouses,
-  savePrices
+  saveHouses
 };
