@@ -1,68 +1,44 @@
 import { useEffect, useState } from "react";
+import { fetchApi } from "./utils/fetch";
 
-const fetchApi = async (url) => {
-  return fetch(url, {
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json;charset=UTF-8"
-    }
-  })
-    .then((res) => res.json())
-    .then((response) => {
-      return response;
-    });
-};
 const useHouses = () => {
   const [houses, setHouses] = useState([]);
+  const [prices, setPrices] = useState([]);
+  const [numberOfHouses, setNumberOfHouses] = useState(100);
 
   useEffect(() => {
+    const callPricesApi = async () => {
+      const { prices } = await fetchApi("http://localhost/getPrices");
+      setPrices(prices);
+    };
     const callHousesApi = async () => {
       const { houses } = await fetchApi("http://localhost/getHouses");
-      setHouses(houses.splice(0, 100));
+      setHouses(houses);
     };
-
+    callPricesApi();
     callHousesApi();
   }, []);
 
-  const housesGroupById = houses?.reduce((acc, house) => {
-    (acc[house.id] = acc[house.id] || []).push(house);
-    return acc;
-  }, {});
+  const housesWithPrices = houses?.splice(0, numberOfHouses).map((house) => {
+    const price = prices
+      .filter((price) => price.link === house.link)
+      .map(({ price, date }) => ({
+        price: price?.toLocaleString(),
+        date
+      }));
 
-  const housesWithPrices = Object.values(housesGroupById)
-    .flatMap((currentHouse) => {
-      if (currentHouse.length === 1) {
-        return {
-          ...currentHouse[0],
-          price: [
-            {
-              price: currentHouse[0].price,
-              date: currentHouse[0].date
-            }
-          ]
-        };
-      }
+    return { ...house, price };
+  });
 
-      const houseIsOnSale =
-        currentHouse.at(-1).price[0].date === new Date().toLocaleDateString();
-
-      if (!houseIsOnSale) return null;
-
-      const house = currentHouse.at(0);
-
-      const prices = currentHouse.price?.map(({ price }) => price);
-
-      const newHouse = currentHouse.at(-1);
-
-      const isNewPrice = !prices.includes(newHouse.price[0].price);
-      if (isNewPrice) house.price.push(newHouse.price[0]);
-
-      return currentHouse;
-    })
-    .filter((x) => x);
+  const handleSelect = (e) => {
+    setNumberOfHouses(e.target.value);
+  };
 
   return {
-    housesWithPrices
+    housesWithPrices: housesWithPrices.sort(
+      (a, b) => a.price[0].price - b.price[0].price
+    ),
+    handleSelect
   };
 };
 

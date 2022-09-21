@@ -23,22 +23,17 @@ db.connect(function (err) {
   if (err) throw err;
 });
 
-const saveHouses = (newHouses) => {
+const postHouses = (newHouses) => {
   db.query(
-    "INSERT INTO `houses`.`information` (`price`, `date`, `title`, `link`, `detail`, `description`, `surface`, `image`) VALUES ?",
+    "INSERT INTO `houses`.`information` ( `title`, `link`,  `description`, `surface`, `image`) VALUES ?",
     [
-      newHouses.map(
-        ({ price, date, title, link, detail, description, surface, image }) => [
-          price,
-          date,
-          title,
-          link,
-          detail,
-          description,
-          surface,
-          image
-        ]
-      )
+      newHouses.map(({ title, link, description, surface, image }) => [
+        title,
+        link,
+        description,
+        surface,
+        image
+      ])
     ],
     (err, result) => {
       if (err) throw err;
@@ -47,22 +42,53 @@ const saveHouses = (newHouses) => {
   );
 };
 
-app.post("/saveHouses", jsonParser, async (req, res) => {
-  saveHouses(req.body);
-  res.send({ status: "Success" });
-});
+const postPrice = (newHouses) => {
+  db.query(
+    "INSERT INTO `houses`.`price` (`price`, `date`, `link`) VALUES ?",
+    [newHouses.map(({ price, date, link }) => [price, date, link])],
+    (err) => {
+      if (err) throw err;
+    }
+  );
+};
+
+const getHousesLink = (newHouses) => {
+  return new Promise((resolve, reject) => {
+    const sql = "SELECT link from `houses`.`information`";
+    db.query(sql, (err, result) => {
+      if (err) {
+        reject(new Error());
+      } else {
+        resolve(result);
+      }
+    });
+  });
+};
 
 app.get("/getHouses", jsonParser, async (_, res) => {
   const sql = "select * from information";
-  db.query(sql, (err, result) => {
+  db.query(sql, (err, houses) => {
     if (err) {
       res.flash("error", err);
     } else {
-      res.send({ status: "Success", houses: result });
+      res.send({ status: "Success", houses });
+    }
+  });
+});
+
+app.get("/getPrices", jsonParser, async (_, res) => {
+  const sql = "select * from price";
+  db.query(sql, (err, prices) => {
+    if (err) {
+      res.flash("error", err);
+    } else {
+      res.send({ status: "Success", prices });
     }
   });
 });
 
 module.exports = {
-  saveHouses
+  postHouses,
+  getHousesLink,
+  postPrice
 };
