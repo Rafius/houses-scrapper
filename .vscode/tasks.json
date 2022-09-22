@@ -1,21 +1,21 @@
 {
   "version": "2.0.0",
   "tasks": [
+    // {
+    //   "label": "starting local host",
+    //   "type": "shell",
+    //   "command": "npm start --prefix front",
+    //   "presentation": {
+    //     "reveal": "always",
+    //     "panel": "new",
+    //     "group": "develop"
+    //   },
+    //   "runOptions": { "runOn": "folderOpen" }
+    // },
     {
-      "label": "starting local host",
+      "label": "starting e2e",
       "type": "shell",
-      "command": "npm start --prefix front",
-      "presentation": {
-        "reveal": "always",
-        "panel": "new",
-        "group": "develop"
-      },
-      "runOptions": { "runOn": "folderOpen" }
-    },
-    {
-      "label": "starting local api",
-      "type": "shell",
-      "command": "npm run api",
+      "command": "node index.js",
       "presentation": {
         "reveal": "always",
         "panel": "new",

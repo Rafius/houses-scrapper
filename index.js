@@ -17,7 +17,7 @@ const scrapperHouses = async () => {
   const start = new Date().getTime();
 
   const browser = await chromium.launch({
-    headless: false,
+    headless: true,
     defaultViewport: null
   });
   const page = await browser.newPage();
@@ -79,7 +79,8 @@ const scrapperHouses = async () => {
     const nextPage = await page.$$(".sui-MoleculePagination-item");
     nextPage.at(-1)?.click();
 
-    console.log(`current page ${i} / ${housesCount}`);
+    const currentPercentage = (i * 100) / housesCount;
+    console.log(currentPercentage.toFixed(2), "%");
   }
 
   const end = new Date().getTime();
@@ -91,18 +92,18 @@ const scrapperHouses = async () => {
 
 const scrapperPrices = async () => {
   const browser = await chromium.launch({
-    headless: true,
+    headless: false,
     defaultViewport: null
   });
   const page = await browser.newPage();
   const start = new Date().getTime();
   getHouses().then(async (houses) => {
-    for (let i = 1; i < houses.length + 1; i++) {
-      const { link } = houses[i];
+    for (let i = 0; i < houses.length; i++) {
+      const { link, title } = houses[i];
 
-      await page.goto(link, { waitUntil: "networkidle" });
+      await page.goto(link);
 
-      let [price] = await page.$$(".re-DetailHeader-priceContainer");
+      let [price] = await page.$$(".re-DetailHeader-price");
       price = await price?.textContent();
 
       if (!price) continue;
@@ -111,12 +112,13 @@ const scrapperPrices = async () => {
       const newPrice = {
         price,
         date: new Date().toISOString().slice(0, 19).replace("T", " "),
-        link
+        link,
+        title
       };
 
       postPrice([newPrice]);
       const currentPercentage = (i * 100) / houses.length;
-      console.log(currentPercentage.toFixed(2), "%");
+      console.log(currentPercentage.toFixed(2), "%", i);
     }
 
     const end = new Date().getTime();
@@ -126,6 +128,6 @@ const scrapperPrices = async () => {
   });
 };
 
-// scrapperHouses();
+scrapperHouses();
 
-scrapperPrices();
+//scrapperPrices();

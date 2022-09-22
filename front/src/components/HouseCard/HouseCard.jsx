@@ -11,9 +11,10 @@ const HouseCard = ({ index, image, title, link, surface, price }) => {
 
   let priceChanges;
   if (price.length > 1)
-    priceChanges = Number(price[0]?.price) - Number(price?.at(-1)?.price);
+    priceChanges = Number(price.at(0)?.price) - Number(price?.at(-1)?.price);
 
-  if (!priceChanges) return null;
+  if (!(priceChanges > 0)) return null;
+
   return (
     <div className="house" key={index}>
       <img src={image} alt={title} loading="lazy" />
@@ -30,7 +31,7 @@ const HouseCard = ({ index, image, title, link, surface, price }) => {
         Precio por m² original:{" "}
         {parseFloat((price?.at(0).price * 1000) / surface).toFixed(2)} €
       </p>
-      <p>El precio ha bajado: {priceChanges} €</p>
+      <p>El precio ha bajado: {priceChanges}k €</p>
       <Chart data={data} priceChanges={priceChanges} />
     </div>
   );
