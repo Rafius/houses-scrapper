@@ -4,7 +4,7 @@ import { fetchApi } from "./utils/fetch";
 const useHouses = () => {
   const [houses, setHouses] = useState([]);
   const [prices, setPrices] = useState([]);
-  const [numberOfHouses, setNumberOfHouses] = useState(100);
+  const [numberOfHouses, setNumberOfHouses] = useState(houses.length);
 
   useEffect(() => {
     const callPricesApi = async () => {
@@ -19,7 +19,9 @@ const useHouses = () => {
     callHousesApi();
   }, []);
 
-  const housesWithPrices = houses?.splice(0, numberOfHouses).map((house) => {
+  // .splice(0, numberOfHouses)
+
+  const housesWithPrices = houses?.map((house) => {
     const price = prices
       .filter((price) => price.link === house.link)
       .map(({ price, date }) => ({
@@ -35,9 +37,10 @@ const useHouses = () => {
   };
 
   return {
-    housesWithPrices: housesWithPrices.sort(
-      (a, b) => a.price[0].price - b.price[0].price
-    ),
+    housesWithPrices,
+    //   : housesWithPrices.sort(
+    //   (a, b) => a.price[0].price - b.price[0].price
+    // ),
     handleSelect
   };
 };

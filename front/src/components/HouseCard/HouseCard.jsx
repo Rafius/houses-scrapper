@@ -1,6 +1,9 @@
 import Chart from "../Chart";
 
 const HouseCard = ({ index, image, title, link, surface, price }) => {
+  if (!price.length) {
+    return null;
+  }
   const data = price?.map(({ date, price }) => ({
     name: date,
     uv: price
@@ -8,9 +11,9 @@ const HouseCard = ({ index, image, title, link, surface, price }) => {
 
   let priceChanges;
   if (price.length > 1)
-    priceChanges =
-      Number(price[0]?.price) - Number(price?.at(-1)?.price).toFixed(2);
+    priceChanges = Number(price[0]?.price) - Number(price?.at(-1)?.price);
 
+  if (!priceChanges) return null;
   return (
     <div className="house" key={index}>
       <img src={image} alt={title} loading="lazy" />

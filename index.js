@@ -1,5 +1,5 @@
 const { chromium } = require("playwright-chromium");
-const { postHouses, postPrice, getHousesLink } = require("./api");
+const { postHouses, postPrice, getHouses } = require("./api");
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -27,8 +27,12 @@ const scrapperHouses = async () => {
   // Accept cookies
   await page.click('[data-testid="TcfAccept"]');
 
-  const numberOfPages = 69;
-  for (let i = 1; i <= numberOfPages; i++) {
+  let [housesCount] = await page.$$(".re-SearchTitle-count");
+  housesCount = await housesCount.textContent();
+
+  housesCount = Math.ceil(housesCount / 0.03);
+
+  for (let i = 1; i <= housesCount; i++) {
     const houses = [];
 
     // Scroll down to see all element
@@ -44,8 +48,6 @@ const scrapperHouses = async () => {
     const surface = await page.$$(
       ".re-CardFeaturesWithIcons-feature-icon--surface"
     );
-    // re - CardFeaturesWithIcons - feature - icon;
-    // re - CardFeaturesWithIcons - feature - icon--surface
     let hrefs = await page.evaluate(() => {
       return Array.from(document.links).map((item) => item.href);
     });
@@ -77,32 +79,35 @@ const scrapperHouses = async () => {
     const nextPage = await page.$$(".sui-MoleculePagination-item");
     nextPage.at(-1)?.click();
 
-    console.log("current page", i, houses.length);
+    console.log(`current page ${i} / ${housesCount}`);
   }
 
   const end = new Date().getTime();
   const time = end - start;
 
   console.log("Execution time: " + millisToMinutesAndSeconds(time));
+  scrapperPrices();
 };
 
 const scrapperPrices = async () => {
   const browser = await chromium.launch({
-    headless: false,
+    headless: true,
     defaultViewport: null
   });
   const page = await browser.newPage();
+  const start = new Date().getTime();
+  getHouses().then(async (houses) => {
+    for (let i = 1; i < houses.length + 1; i++) {
+      const { link } = houses[i];
 
-  getHousesLink().then(async (links) => {
-    const start = new Date().getTime();
-
-    for (let i = 1270; i < links.length; i++) {
-      const link = links[i].link;
       await page.goto(link, { waitUntil: "networkidle" });
+
       let [price] = await page.$$(".re-DetailHeader-priceContainer");
       price = await price?.textContent();
 
+      if (!price) continue;
       price = price?.replace(/[^0-9]/g, "")?.slice(0, 6);
+
       const newPrice = {
         price,
         date: new Date().toISOString().slice(0, 19).replace("T", " "),
@@ -110,12 +115,14 @@ const scrapperPrices = async () => {
       };
 
       postPrice([newPrice]);
-      console.log("current page", i + 1, links.length, price);
+      const currentPercentage = (i * 100) / houses.length;
+      console.log(currentPercentage.toFixed(2), "%");
     }
+
     const end = new Date().getTime();
     const time = end - start;
-
     console.log("Execution time: " + millisToMinutesAndSeconds(time));
+    browser.close();
   });
 };
 

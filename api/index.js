@@ -24,22 +24,30 @@ db.connect(function (err) {
 });
 
 const postHouses = (newHouses) => {
-  db.query(
-    "INSERT INTO `houses`.`information` ( `title`, `link`,  `description`, `surface`, `image`) VALUES ?",
-    [
-      newHouses.map(({ title, link, description, surface, image }) => [
-        title,
-        link,
-        description,
-        surface,
-        image
-      ])
-    ],
-    (err, result) => {
-      if (err) throw err;
-      console.log(result.message);
-    }
-  );
+  let houses = [];
+  getHouses().then(async (bdHouses) => {
+    const links = bdHouses.map(({ link }) => link);
+    houses = newHouses.filter(({ link }) => !links.includes(link));
+
+    if (!houses.length) return;
+
+    db.query(
+      "INSERT INTO `houses`.`information` ( `title`, `link`, `description`, `surface`, `image`) VALUES ?",
+      [
+        houses.map(({ title, link, description, surface, image }) => [
+          title,
+          link,
+          description,
+          surface,
+          image
+        ])
+      ],
+      (err, result) => {
+        if (err) throw err;
+        console.log(result.message);
+      }
+    );
+  });
 };
 
 const postPrice = (newHouses) => {
@@ -52,9 +60,9 @@ const postPrice = (newHouses) => {
   );
 };
 
-const getHousesLink = (newHouses) => {
+const getHouses = () => {
   return new Promise((resolve, reject) => {
-    const sql = "SELECT link from `houses`.`information`";
+    const sql = "SELECT * from `houses`.`information`";
     db.query(sql, (err, result) => {
       if (err) {
         reject(new Error());
@@ -89,6 +97,6 @@ app.get("/getPrices", jsonParser, async (_, res) => {
 
 module.exports = {
   postHouses,
-  getHousesLink,
+  getHouses,
   postPrice
 };
