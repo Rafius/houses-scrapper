@@ -95,15 +95,17 @@ const scrapperHouses = async () => {
   scrapperPrices();
 };
 
-const scrapperPrices = async () => {
+const scrapperPrices = async (start, end) => {
   const browser = await chromium.launch({
     headless: true,
     defaultViewport: null
   });
   const page = await browser.newPage();
-  const start = new Date().getTime();
+  const startTime = new Date().getTime();
   getHouses().then(async (houses) => {
-    for (let i = 0; i < houses.length; i++) {
+    if (end > houses.length) return;
+    for (let i = start; i < end; i++) {
+      if (!houses[i]) continue;
       const { link, title } = houses[i];
 
       await page.goto(link);
@@ -122,17 +124,20 @@ const scrapperPrices = async () => {
       };
 
       postPrice([newPrice]);
-      const currentPercentage = (i * 100) / houses.length;
+      const currentPercentage = (i % 100) / 1000;
       console.log(currentPercentage.toFixed(2), "%", i);
     }
 
-    const end = new Date().getTime();
-    const time = end - start;
-    console.log("Execution time: " + millisToMinutesAndSeconds(time));
+    const endTime = new Date().getTime();
+    console.log(
+      "Execution time: " + millisToMinutesAndSeconds(endTime - startTime)
+    );
     browser.close();
   });
 };
 
 // scrapperHouses();
 
-//scrapperPrices();
+for (let index = 1; index < 9; index++) {
+  scrapperPrices(index * 1000, (index + 1) * 1000);
+}

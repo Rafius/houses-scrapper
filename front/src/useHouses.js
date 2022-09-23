@@ -3,25 +3,22 @@ import { fetchApi } from "./utils/fetch";
 
 const useHouses = () => {
   const [houses, setHouses] = useState([]);
-  const [numberOfHouses, setNumberOfHouses] = useState(houses.length);
 
   useEffect(() => {
     const callHousesApi = async () => {
-      const { houses } = await fetchApi("http://localhost/getHouses");
+      const { houses, count } = await fetchApi("http://localhost/getHouses");
       setHouses(houses);
+      console.log("casas bajadas de precio", count);
     };
     callHousesApi();
   }, []);
 
-  // .splice(0, numberOfHouses)
-
   const handleSelect = (e) => {
-    setNumberOfHouses(e.target.value);
+    // setNumberOfHouses(e.target.value);
   };
 
   return {
     houses,
-
     handleSelect
   };
 };

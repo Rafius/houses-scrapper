@@ -74,8 +74,7 @@ const getHouses = () => {
 };
 
 app.get("/getHouses", jsonParser, async (_, res) => {
-  const sql =
-    "SELECT i.title, i.link, i.surface, i.image, p.price, p.date FROM information i JOIN price p ON i.link = p.link ";
+  const sql = "select * from houses_view";
   db.query(sql, (err, houses) => {
     if (err) {
       res.flash("error", err);
@@ -84,7 +83,7 @@ app.get("/getHouses", jsonParser, async (_, res) => {
         (prev[current.link] = prev[current.link] || []).push(current);
         return prev;
       }, {});
-      const filteredHouses = Object.values(results).map((item) => {
+      let filteredHouses = Object.values(results).map((item) => {
         const pricesWithDate = item.map(({ price, date }) => {
           return {
             price,
@@ -99,12 +98,20 @@ app.get("/getHouses", jsonParser, async (_, res) => {
 
         return {
           ...item[0],
-          price: pricesFiltered.sort((a, b) => a.date - b.date)
+          price: pricesFiltered.sort((a, b) => a.date - b.date),
+          priceChanges:
+            pricesFiltered.at(0)?.price - pricesFiltered?.at(-1)?.price
         };
       });
+
+      filteredHouses = filteredHouses
+        .filter(({ priceChanges }) => priceChanges > 0)
+        .sort((a, b) => b.priceChanges - a.priceChanges);
+
       res.send({
         status: "Success",
-        houses: filteredHouses
+        houses: filteredHouses,
+        count: filteredHouses.length
       });
     }
   });
