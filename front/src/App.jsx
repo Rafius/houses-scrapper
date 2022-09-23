@@ -5,13 +5,16 @@ import HouseCard from "./components/HouseCard";
 import useHouses from "./useHouses";
 
 function App() {
-  const { housesWithPrices, handleSelect } = useHouses();
+  const { houses, handleSelect } = useHouses();
 
+  houses.forEach((item) => {
+    if (item.price.length > 1) console.log(item);
+  });
   return (
     <div>
       <Selector handleSelect={handleSelect} />
       <div className="houses-container">
-        {housesWithPrices?.map((item, index) => (
+        {houses?.map((item, index) => (
           <HouseCard {...item} key={index} />
         ))}
       </div>

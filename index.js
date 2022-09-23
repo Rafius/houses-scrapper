@@ -10,9 +10,8 @@ const millisToMinutesAndSeconds = (millis) => {
 };
 
 const url =
-  "https://www.fotocasa.es/es/comprar/viviendas/malaga-provincia/todas-las-zonas/piscina/l?maxPrice=300000&searchArea=42nh5hi5ethe969Bn7qDl7qDnh4Qo-iFivuUg1ixvEx9mH1ry3C313xCs1xgB__tTkxhhCzsqD4z64Eywqfpx5Hv8_B67iOki1F08vSgnrXr13D_vskCg-y9Bot92BzjlyGlj836Cqw1Q5oiuE403mB9mrNkvs32B2tkxgDx--3GspqoR3pqNjn3Jp0wa1xqVzjkqM9i88F9-x97Bs80xOyh75Lg8whD6tqkCr7Flit_k8F";
-// "https://www.fotocasa.es/es/comprar/viviendas/malaga-provincia/todas-las-zonas/l";
-
+  "https://www.fotocasa.es/es/comprar/viviendas/malaga-provincia/todas-las-zonas/piscina/l?mapBoundingBox=46_kp13tgBjzo8_lG-21w9tmBhl5-_lG&maxPrice=300000";
+// "https://www.fotocasa.es/es/comprar/viviendas/malaga-provincia/todas-las-zonas/piscina/l?maxPrice=300000&searchArea=42nh5hi5ethe969Bn7qDl7qDnh4Qo-iFivuUg1ixvEx9mH1ry3C313xCs1xgB__tTkxhhCzsqD4z64Eywqfpx5Hv8_B67iOki1F08vSgnrXr13D_vskCg-y9Bot92BzjlyGlj836Cqw1Q5oiuE403mB9mrNkvs32B2tkxgDx--3GspqoR3pqNjn3Jp0wa1xqVzjkqM9i88F9-x97Bs80xOyh75Lg8whD6tqkCr7Flit_k8F";
 const scrapperHouses = async () => {
   const start = new Date().getTime();
 
@@ -45,7 +44,7 @@ const scrapperHouses = async () => {
     // Get all houses
 
     const titles = await page.$$(".re-CardTitle");
-    const surface = await page.$$(
+    const surfaces = await page.$$(
       ".re-CardFeaturesWithIcons-feature-icon--surface"
     );
     let hrefs = await page.evaluate(() => {
@@ -61,11 +60,17 @@ const scrapperHouses = async () => {
     const uniqueHrefs = [...new Set(hrefs)].slice(0, 30);
 
     for (let k = 0; k < uniqueHrefs.length; k++) {
+      const title = await titles[k]?.textContent();
+      const image = await images[k];
+      const link = uniqueHrefs[k];
+      const surface = await surfaces[k]?.textContent();
+
+      if (!title) continue;
       houses.push({
-        title: await titles[k]?.textContent(),
-        image: await images[k],
-        link: uniqueHrefs[k],
-        surface: await surface[k]?.textContent()
+        title,
+        image,
+        link,
+        surface
       });
     }
 
@@ -92,7 +97,7 @@ const scrapperHouses = async () => {
 
 const scrapperPrices = async () => {
   const browser = await chromium.launch({
-    headless: false,
+    headless: true,
     defaultViewport: null
   });
   const page = await browser.newPage();
@@ -128,6 +133,6 @@ const scrapperPrices = async () => {
   });
 };
 
-scrapperHouses();
+// scrapperHouses();
 
 //scrapperPrices();

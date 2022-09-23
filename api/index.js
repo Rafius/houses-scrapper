@@ -74,23 +74,38 @@ const getHouses = () => {
 };
 
 app.get("/getHouses", jsonParser, async (_, res) => {
-  const sql = "select * from information";
+  const sql =
+    "SELECT i.title, i.link, i.surface, i.image, p.price, p.date FROM information i JOIN price p ON i.link = p.link ";
   db.query(sql, (err, houses) => {
     if (err) {
       res.flash("error", err);
     } else {
-      res.send({ status: "Success", houses });
-    }
-  });
-});
+      const results = houses.reduce((prev, current) => {
+        (prev[current.link] = prev[current.link] || []).push(current);
+        return prev;
+      }, {});
+      const filteredHouses = Object.values(results).map((item) => {
+        const pricesWithDate = item.map(({ price, date }) => {
+          return {
+            price,
+            date
+          };
+        });
+        const prices = item.map(({ price }) => price);
 
-app.get("/getPrices", jsonParser, async (_, res) => {
-  const sql = "select * from price";
-  db.query(sql, (err, prices) => {
-    if (err) {
-      res.flash("error", err);
-    } else {
-      res.send({ status: "Success", prices });
+        const pricesFiltered = pricesWithDate.filter(
+          ({ price }, index) => !prices.includes(price, index + 1)
+        );
+
+        return {
+          ...item[0],
+          price: pricesFiltered.sort((a, b) => a.date - b.date)
+        };
+      });
+      res.send({
+        status: "Success",
+        houses: filteredHouses
+      });
     }
   });
 });

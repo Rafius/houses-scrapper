@@ -8,7 +8,7 @@ import {
 } from "recharts";
 
 const Chart = ({ data, priceChanges }) => {
-  if (!priceChanges) return null;
+  // if (!priceChanges) return null;
 
   return (
     <LineChart
@@ -20,7 +20,7 @@ const Chart = ({ data, priceChanges }) => {
       <Line type="monotone" dataKey="uv" stroke="#8884d8" />
       <CartesianGrid stroke="#ccc" />
       <XAxis dataKey="name" />
-      <YAxis dateKey="date" domain={[100, 300]} />
+      <YAxis dateKey="date" domain={[10000, 60000]} />
       <Tooltip />
     </LineChart>
   );
