@@ -16,8 +16,16 @@ const HouseCard = ({
     };
   });
 
-  console.log(priceChanges);
+  // console.log(
+  //   { priceChanges },
+  //   { surface },
+  //   { "cambios de precios": price.length },
+  //   {
+  //     "precio por m²": parseInt(price?.at(-1).price / surface)
+  //   }
+  // );
 
+  // console.log(price[1].date);
   return (
     <div className="house" key={index}>
       <img src={image} alt={title} loading="lazy" />
@@ -25,21 +33,9 @@ const HouseCard = ({
         {title}, {surface} m²
       </a>
       <p>Precio: {price?.at(-1).price.toString().slice(0, 3)}K €</p>
-      <p>
-        Precio por m²:{" "}
-        {parseFloat(price?.at(-1).price / surface)
-          .toString()
-          .slice(0, 3)}{" "}
-        K €
-      </p>
+      <p>Precio por m²: {parseInt(price?.at(-1).price / surface)} €</p>
       <p>Precio original: {price.at(0).price.toString().slice(0, 3)}K €</p>
-      <p>
-        Precio por m² original:{" "}
-        {parseFloat(price?.at(0).price / surface)
-          .toString()
-          .slice(0, 3)}{" "}
-        K €
-      </p>
+      <p>Precio por m² original: {parseInt(price?.at(0).price / surface)} €</p>
       <p>El precio ha bajado: {priceChanges} €</p>
       <Chart data={data} priceChanges={priceChanges} />
     </div>

@@ -52,8 +52,16 @@ const postHouses = (newHouses) => {
 
 const postPrice = (newHouses) => {
   db.query(
-    "INSERT INTO `houses`.`price` (`price`, `date`, `link`) VALUES ?",
-    [newHouses.map(({ price, date, link }) => [price, date, link])],
+    "INSERT INTO `houses`.`price` (`price`, `date`, `link`, `title`, `surface`) VALUES ?",
+    [
+      newHouses.map(({ price, date, link, title, surface }) => [
+        price,
+        date,
+        link,
+        title,
+        Number(surface) || 0
+      ])
+    ],
     (err) => {
       if (err) throw err;
     }
@@ -77,43 +85,48 @@ app.get("/getHouses", jsonParser, async (_, res) => {
   const sql = "select * from houses_view";
   db.query(sql, (err, houses) => {
     if (err) {
-      res.flash("error", err);
-    } else {
-      const results = houses.reduce((prev, current) => {
-        (prev[current.link] = prev[current.link] || []).push(current);
-        return prev;
-      }, {});
-      let filteredHouses = Object.values(results).map((item) => {
-        const pricesWithDate = item.map(({ price, date }) => {
-          return {
-            price,
-            date
-          };
-        });
-        const prices = item.map(({ price }) => price);
+      return res.flash("error", err);
+    }
 
-        const pricesFiltered = pricesWithDate.filter(
-          ({ price }, index) => !prices.includes(price, index + 1)
-        );
+    const results = houses.reduce((prev, current) => {
+      (prev[current.link] = prev[current.link] || []).push(current);
+      return prev;
+    }, {});
 
+    let filteredHouses = Object.values(results).map((item) => {
+      const pricesWithDate = item.map(({ price, date }) => {
         return {
-          ...item[0],
-          price: pricesFiltered.sort((a, b) => a.date - b.date),
-          priceChanges:
-            pricesFiltered.at(0)?.price - pricesFiltered?.at(-1)?.price
+          price,
+          date
         };
       });
+      const prices = item.map(({ price }) => price);
 
-      filteredHouses = filteredHouses
-        .filter(({ priceChanges }) => priceChanges > 0)
-        .sort((a, b) => b.priceChanges - a.priceChanges);
+      const pricesFiltered = pricesWithDate.filter(
+        ({ price }, index) => !prices.includes(price, index + 1)
+      );
 
-      res.send({
-        status: "Success",
-        houses: filteredHouses,
-        count: filteredHouses.length
-      });
-    }
+      const { surface } = item.find(({ surface }) => surface) || {};
+
+      return {
+        ...item[0],
+        price: pricesFiltered.sort((a, b) => a.date - b.date),
+        priceChanges:
+          pricesFiltered.at(0)?.price - pricesFiltered?.at(-1)?.price,
+        pricePerMeter: pricesFiltered?.at(-1).price / surface,
+        surface
+      };
+    });
+
+    filteredHouses = filteredHouses
+      .filter(({ priceChanges }) => priceChanges > 0)
+      .sort((a, b) => b.priceChanges - a.priceChanges);
+
+    res.send({
+      status: "Success",
+      houses: filteredHouses,
+      count: filteredHouses.length
+    });
   });
 });
 

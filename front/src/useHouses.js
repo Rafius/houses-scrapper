@@ -3,6 +3,10 @@ import { fetchApi } from "./utils/fetch";
 
 const useHouses = () => {
   const [houses, setHouses] = useState([]);
+  const [sortCriteria, setSortCriteria] = useState({
+    asc: false,
+    key: "priceChanges"
+  });
 
   useEffect(() => {
     const callHousesApi = async () => {
@@ -13,13 +17,25 @@ const useHouses = () => {
     callHousesApi();
   }, []);
 
-  const handleSelect = (e) => {
-    // setNumberOfHouses(e.target.value);
+  const handleSortCriteriaKey = (e) => {
+    setSortCriteria({ ...sortCriteria, key: e.target.value });
   };
 
+  const handleSortCriteriaAsc = (e) => {
+    setSortCriteria({ ...sortCriteria, asc: JSON.parse(e.target.value) });
+  };
+
+  houses.sort((a, b) => b[sortCriteria.key] - a[sortCriteria.key]);
+
+  // Ordenar por bajada de precio mas reciente
+  // houses.sort(
+  //   (a, b) => new Date(b.price.at(-1).date) - new Date(a.price.at(-1).date)
+  // );
+
   return {
-    houses,
-    handleSelect
+    houses: sortCriteria.asc ? houses.reverse() : houses,
+    handleSortCriteriaKey,
+    handleSortCriteriaAsc
   };
 };
 

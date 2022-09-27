@@ -10,8 +10,7 @@ const millisToMinutesAndSeconds = (millis) => {
 };
 
 const url =
-  "https://www.fotocasa.es/es/comprar/viviendas/malaga-provincia/todas-las-zonas/piscina/l?mapBoundingBox=46_kp13tgBjzo8_lG-21w9tmBhl5-_lG&maxPrice=300000";
-// "https://www.fotocasa.es/es/comprar/viviendas/malaga-provincia/todas-las-zonas/piscina/l?maxPrice=300000&searchArea=42nh5hi5ethe969Bn7qDl7qDnh4Qo-iFivuUg1ixvEx9mH1ry3C313xCs1xgB__tTkxhhCzsqD4z64Eywqfpx5Hv8_B67iOki1F08vSgnrXr13D_vskCg-y9Bot92BzjlyGlj836Cqw1Q5oiuE403mB9mrNkvs32B2tkxgDx--3GspqoR3pqNjn3Jp0wa1xqVzjkqM9i88F9-x97Bs80xOyh75Lg8whD6tqkCr7Flit_k8F";
+  "https://www.fotocasa.es/es/comprar/viviendas/malaga-provincia/todas-las-zonas/piscina/l/7?mapBoundingBox=46_kp13tgBjzo8_lG-21w9tmBhl5-_lG&maxPrice=300000";
 const scrapperHouses = async () => {
   const start = new Date().getTime();
 
@@ -95,16 +94,15 @@ const scrapperHouses = async () => {
   scrapperPrices();
 };
 
-const scrapperPrices = async (start, end) => {
+const scrapperPrices = async () => {
   const browser = await chromium.launch({
-    headless: true,
+    headless: false,
     defaultViewport: null
   });
   const page = await browser.newPage();
   const startTime = new Date().getTime();
   getHouses().then(async (houses) => {
-    if (end > houses.length) return;
-    for (let i = start; i < end; i++) {
+    for (let i = 8610; i < houses.length; i++) {
       if (!houses[i]) continue;
       const { link, title } = houses[i];
 
@@ -112,6 +110,14 @@ const scrapperPrices = async (start, end) => {
 
       let [price] = await page.$$(".re-DetailHeader-price");
       price = await price?.textContent();
+      let [features] = await page.$$(".re-DetailHeader-features");
+      features = await features?.textContent();
+
+      const surface = features
+        ?.split("m²")[0]
+        ?.slice(-5)
+        .trim()
+        .replace(/[\D]/g, "");
 
       if (!price) continue;
       price = price?.replace(/[^0-9]/g, "")?.slice(0, 6);
@@ -120,11 +126,12 @@ const scrapperPrices = async (start, end) => {
         price,
         date: new Date().toISOString().slice(0, 19).replace("T", " "),
         link,
-        title
+        title,
+        surface
       };
 
       postPrice([newPrice]);
-      const currentPercentage = (i % 100) / 1000;
+      const currentPercentage = (i / houses.length) * 100;
       console.log(currentPercentage.toFixed(2), "%", i);
     }
 
@@ -137,7 +144,8 @@ const scrapperPrices = async (start, end) => {
 };
 
 // scrapperHouses();
+scrapperPrices();
 
-for (let index = 1; index < 9; index++) {
-  scrapperPrices(index * 1000, (index + 1) * 1000);
-}
+// for (let index = 0; index <= 9; index++) {
+//   scrapperPrices(index * 1000, (index + 1) * 1000);
+// }

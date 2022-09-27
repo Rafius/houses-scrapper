@@ -8,7 +8,7 @@ import {
 } from "recharts";
 
 const Chart = ({ data, priceChanges }) => {
-  // if (!priceChanges) return null;
+  if (!priceChanges) return null;
 
   return (
     <LineChart
