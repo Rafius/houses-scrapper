@@ -28,9 +28,9 @@ const useHouses = () => {
   houses.sort((a, b) => b[sortCriteria.key] - a[sortCriteria.key]);
 
   // Ordenar por bajada de precio mas reciente
-  // houses.sort(
-  //   (a, b) => new Date(b.price.at(-1).date) - new Date(a.price.at(-1).date)
-  // );
+  houses.sort(
+    (a, b) => new Date(b.price.at(-1).date) - new Date(a.price.at(-1).date)
+  );
 
   return {
     houses: sortCriteria.asc ? houses.reverse() : houses,

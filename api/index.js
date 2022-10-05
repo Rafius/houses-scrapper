@@ -24,70 +24,44 @@ db.connect(function (err) {
 });
 
 const postHouses = (newHouses) => {
-  let houses = [];
-  getHouses().then(async (bdHouses) => {
-    const links = bdHouses.map(({ link }) => link);
-    houses = newHouses.filter(({ link }) => !links.includes(link));
-
-    if (!houses.length) return;
-
-    db.query(
-      "INSERT INTO `houses`.`information` ( `title`, `link`, `description`, `surface`, `image`) VALUES ?",
-      [
-        houses.map(({ title, link, description, surface, image }) => [
+  db.query(
+    "INSERT INTO `houses`.`information` ( `title`, `link`, `description`, `surface`, `image`, `price`, `reducedPrice`, `date`) VALUES ?",
+    [
+      newHouses.map(
+        ({
           title,
           link,
           description,
           surface,
-          image
-        ])
-      ],
-      (err, result) => {
-        if (err) throw err;
-        console.log(result.message);
-      }
-    );
-  });
-};
-
-const postPrice = (newHouses) => {
-  db.query(
-    "INSERT INTO `houses`.`price` (`price`, `date`, `link`, `title`, `surface`) VALUES ?",
-    [
-      newHouses.map(({ price, date, link, title, surface }) => [
-        price,
-        date,
-        link,
-        title,
-        Number(surface) || 0
-      ])
+          image,
+          price,
+          reducedPrice,
+          date
+        }) => [
+          title,
+          link,
+          description,
+          surface,
+          image,
+          price,
+          reducedPrice,
+          date
+        ]
+      )
     ],
-    (err) => {
+    (err, result) => {
       if (err) throw err;
+      console.log(result.message);
     }
   );
 };
 
-const getHouses = () => {
-  return new Promise((resolve, reject) => {
-    const sql = "SELECT * from `houses`.`information`";
-    db.query(sql, (err, result) => {
-      if (err) {
-        reject(new Error());
-      } else {
-        resolve(result);
-      }
-    });
-  });
-};
-
 app.get("/getHouses", jsonParser, async (_, res) => {
-  const sql = "select * from houses_view";
+  const sql = "select * from information";
   db.query(sql, (err, houses) => {
     if (err) {
       return res.flash("error", err);
     }
-
     const results = houses.reduce((prev, current) => {
       (prev[current.link] = prev[current.link] || []).push(current);
       return prev;
@@ -113,8 +87,7 @@ app.get("/getHouses", jsonParser, async (_, res) => {
         price: pricesFiltered.sort((a, b) => a.date - b.date),
         priceChanges:
           pricesFiltered.at(0)?.price - pricesFiltered?.at(-1)?.price,
-        pricePerMeter: pricesFiltered?.at(-1).price / surface,
-        surface
+        pricePerMeter: pricesFiltered?.at(-1).price / surface
       };
     });
 
@@ -131,7 +104,5 @@ app.get("/getHouses", jsonParser, async (_, res) => {
 });
 
 module.exports = {
-  postHouses,
-  getHouses,
-  postPrice
+  postHouses
 };

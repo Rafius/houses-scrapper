@@ -7,6 +7,7 @@ const HouseCard = ({
   link,
   surface,
   price,
+  pTitle,
   priceChanges
 }) => {
   const data = price?.map(({ date, price }) => {
@@ -16,16 +17,10 @@ const HouseCard = ({
     };
   });
 
-  // console.log(
-  //   { priceChanges },
-  //   { surface },
-  //   { "cambios de precios": price.length },
-  //   {
-  //     "precio por m²": parseInt(price?.at(-1).price / surface)
-  //   }
-  // );
+  // if (price.length < 3) {
+  //   return null;
+  // }
 
-  // console.log(price[1].date);
   return (
     <div className="house" key={index}>
       <img src={image} alt={title} loading="lazy" />

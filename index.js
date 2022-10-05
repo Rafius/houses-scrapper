@@ -1,5 +1,5 @@
 const { chromium } = require("playwright-chromium");
-const { postHouses, postPrice, getHouses } = require("./api");
+const { postHouses } = require("./api");
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -9,109 +9,64 @@ const millisToMinutesAndSeconds = (millis) => {
   return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
 };
 
-const url =
-  "https://www.fotocasa.es/es/comprar/viviendas/malaga-provincia/todas-las-zonas/piscina/l/7?mapBoundingBox=46_kp13tgBjzo8_lG-21w9tmBhl5-_lG&maxPrice=300000";
 const scrapperHouses = async () => {
   const start = new Date().getTime();
 
-  const browser = await chromium.launch({
-    headless: true,
-    defaultViewport: null
-  });
-  const page = await browser.newPage();
-
-  await page.goto(url, { waitUntil: "networkidle" });
-
-  // Accept cookies
-  await page.click('[data-testid="TcfAccept"]');
-
-  let [housesCount] = await page.$$(".re-SearchTitle-count");
-  housesCount = await housesCount.textContent();
-
-  housesCount = Math.ceil(housesCount / 0.03);
-
-  for (let i = 1; i <= housesCount; i++) {
-    const houses = [];
-
-    // Scroll down to see all element
-
-    for (let j = 0; j <= 20; j++) {
-      await delay(150);
-      page.keyboard.down("PageDown");
-    }
-
-    // Get all houses
-
-    const titles = await page.$$(".re-CardTitle");
-    const surfaces = await page.$$(
-      ".re-CardFeaturesWithIcons-feature-icon--surface"
-    );
-    let hrefs = await page.evaluate(() => {
-      return Array.from(document.links).map((item) => item.href);
-    });
-
-    let images = await page.$$eval(".re-CardMultimediaSlider-image", (imgs) =>
-      imgs.map((img) => img.src)
-    );
-
-    images = images.filter((image) => image.includes("static"));
-    hrefs = hrefs.filter((href) => href.includes("vivienda"));
-    const uniqueHrefs = [...new Set(hrefs)].slice(0, 30);
-
-    for (let k = 0; k < uniqueHrefs.length; k++) {
-      const title = await titles[k]?.textContent();
-      const image = await images[k];
-      const link = uniqueHrefs[k];
-      const surface = await surfaces[k]?.textContent();
-
-      if (!title) continue;
-      houses.push({
-        title,
-        image,
-        link,
-        surface
-      });
-    }
-
-    const newHouses = houses.map((house) => ({
-      ...house,
-      description: house.description?.slice(0, 255),
-      surface: house.surface?.replace(/[\D]/g, "")
-    }));
-
-    postHouses(newHouses);
-    const nextPage = await page.$$(".sui-MoleculePagination-item");
-    nextPage.at(-1)?.click();
-
-    const currentPercentage = (i * 100) / housesCount;
-    console.log(currentPercentage.toFixed(2), "%");
-  }
-
-  const end = new Date().getTime();
-  const time = end - start;
-
-  console.log("Execution time: " + millisToMinutesAndSeconds(time));
-  scrapperPrices();
-};
-
-const scrapperPrices = async () => {
   const browser = await chromium.launch({
     headless: false,
     defaultViewport: null
   });
   const page = await browser.newPage();
-  const startTime = new Date().getTime();
-  getHouses().then(async (houses) => {
-    for (let i = 8610; i < houses.length; i++) {
-      if (!houses[i]) continue;
-      const { link, title } = houses[i];
+
+  const housesCount = 112;
+  for (let i = 1; i <= housesCount; i++) {
+    const url = `https://www.fotocasa.es/es/comprar/viviendas/malaga-provincia/todas-las-zonas/piscina/l/${i}?maxPrice=300000&searchArea=k0h38w32e-jv7C3k1qF_kl4Dpq9dimukEg5uY-24vHvzxkF081P13xmF9yrNpvhdvz-C9p2Gvz-C83_Cvz-C9p2G83_Cvz-Cvz-C83_C9p2Gvz-Cvz-C83_C4q82E-pt-Bzr37E0hjnB8qtU54zvHo91pB-3usBvk2mE2whPzxq1Go8q2L609Ojw3kO36-2Fmy3tCnlztCw4n2Jh1-1Hg8x8PryurErox1Kk9gJq_-3Rwg_uM9683D4nljI63rxCq5r1C1yg7Elhg2J_qq1B9hlB9hlBmzlB9hlB9hlBmzlB_tzEmzlB9hlB9hlBmzlB9hlB9hlBmzlB9hlB9hlBmzlBjv96Ep0wat_5lM4vthE488lD4427P8rxiCu77oGminuGm-6hDn1hJ68t-I9t3rE9olvB6szhB0xzqI0xs0M8tT8tT8tT21qMn4y0Ju0eks1zM0-imFpgh2Gy9inD3y03Pi3uHstt9Nq_hnDq_4uBnngjKzq9pColn8G4mh2LnrqvDt3tkNivvsNnv8zSi_s8QljitM6rsxBuo24P-5zgJljnoH2u8gIh9w1F2031F_llhQiophF3kwpB3i87Dgsh3B_toiBvj5Xvj5Xyx7Xvj5X`;
+
+    await page.goto(url, { waitUntil: "networkidle" });
+
+    // Accept cookies only first page
+    if (i === 1) {
+      await page.click('[data-testid="TcfAccept"]');
+    }
+
+    // Scroll down to see all element
+
+    for (let j = 0; j <= 20; j++) {
+      await delay(100);
+
+      page.keyboard.down("PageDown");
+    }
+
+    let hrefs = await page.evaluate(() => {
+      return Array.from(document.links).map((item) => item.href);
+    });
+    hrefs = hrefs.filter((href) => href.includes("vivienda"));
+    const uniqueHrefs = [...new Set(hrefs)].slice(0, 30);
+
+    for (let k = 0; k < uniqueHrefs.length; k++) {
+      const link = uniqueHrefs[k];
 
       await page.goto(link);
 
-      let [price] = await page.$$(".re-DetailHeader-price");
+      let price = await page.$(".re-DetailHeader-price");
       price = await price?.textContent();
-      let [features] = await page.$$(".re-DetailHeader-features");
+
+      let reducedPrice = await page.$(".re-DetailHeader-reducedPrice");
+      reducedPrice = await reducedPrice?.textContent();
+
+      let features = await page.$(".re-DetailHeader-features");
       features = await features?.textContent();
+
+      let title = await page.$(".re-DetailHeader-propertyTitle");
+      title = await title?.textContent();
+
+      let description = await page.$(".fc-DetailDescription");
+      description = await description?.textContent();
+      description = description?.slice(0, 4500);
+
+      let [image] = await page.$$eval(".re-DetailMosaicPhoto", (imgs) =>
+        imgs.map((img) => img.src)
+      );
 
       const surface = features
         ?.split("m²")[0]
@@ -119,33 +74,30 @@ const scrapperPrices = async () => {
         .trim()
         .replace(/[\D]/g, "");
 
-      if (!price) continue;
+      if (!price) return;
       price = price?.replace(/[^0-9]/g, "")?.slice(0, 6);
+      reducedPrice = reducedPrice?.replace(/[^0-9]/g, "")?.slice(0, 6);
 
-      const newPrice = {
+      const newHouse = {
         price,
+        reducedPrice: reducedPrice ?? 0,
         date: new Date().toISOString().slice(0, 19).replace("T", " "),
         link,
         title,
-        surface
+        surface,
+        description,
+        image
       };
 
-      postPrice([newPrice]);
-      const currentPercentage = (i / houses.length) * 100;
-      console.log(currentPercentage.toFixed(2), "%", i);
+      console.log(k);
+      postHouses([newHouse]);
     }
+  }
 
-    const endTime = new Date().getTime();
-    console.log(
-      "Execution time: " + millisToMinutesAndSeconds(endTime - startTime)
-    );
-    browser.close();
-  });
+  const end = new Date().getTime();
+  const time = end - start;
+
+  console.log("Execution time: " + millisToMinutesAndSeconds(time));
 };
 
 // scrapperHouses();
-scrapperPrices();
-
-// for (let index = 0; index <= 9; index++) {
-//   scrapperPrices(index * 1000, (index + 1) * 1000);
-// }
