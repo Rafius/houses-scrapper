@@ -2,6 +2,8 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const mysql = require("mysql");
+const { google } = require("googleapis");
+const path = require("path");
 
 const app = express();
 const jsonParser = bodyParser.json();
@@ -51,13 +53,42 @@ const postHouses = (newHouses) => {
     ],
     (err, result) => {
       if (err) throw err;
-      console.log(result.message);
+      // console.log(result.message);
     }
   );
 };
 
 app.get("/getHouses", jsonParser, async (_, res) => {
   const sql = "select * from information";
+
+  const spreadsheetId = "1WOpdFzinKugGxClRSKvjLFAtpHPSVw0dhQ6OgIMZ_KA";
+
+  const auth = new google.auth.GoogleAuth({
+    keyFile: path.resolve("./api/credentials.json"),
+    scopes: "https://www.googleapis.com/auth/spreadsheets"
+  });
+
+  const client = await auth.getClient();
+
+  const googleSheets = google.sheets({ version: "v4", auth: client });
+
+  let getMeanSaving = await googleSheets.spreadsheets.values.batchGet({
+    auth,
+    spreadsheetId,
+    ranges: "Ahorro!F16"
+  });
+  let [meanSaving] = getMeanSaving.data.valueRanges.at(0).values.at(0);
+  meanSaving = Number(meanSaving.replace(/[^0-9]/g, "")?.slice(0, 6));
+
+  let getCurrentMoney = await googleSheets.spreadsheets.values.batchGet({
+    auth,
+    spreadsheetId,
+    ranges: "Ahorro!B24"
+  });
+
+  let [currentMoney] = getCurrentMoney.data.valueRanges.at(0).values.at(0);
+  currentMoney = Number(currentMoney.replace(/[^0-9]/g, "")?.slice(0, 6));
+
   db.query(sql, (err, houses) => {
     if (err) {
       return res.flash("error", err);
@@ -82,11 +113,13 @@ app.get("/getHouses", jsonParser, async (_, res) => {
 
       const { surface } = item.find(({ surface }) => surface) || {};
 
+      const priceChanges =
+        pricesFiltered.at(0)?.price - pricesFiltered?.at(-1)?.price;
+
       return {
         ...item[0],
         price: pricesFiltered.sort((a, b) => a.date - b.date),
-        priceChanges:
-          pricesFiltered.at(0)?.price - pricesFiltered?.at(-1)?.price,
+        priceChanges,
         pricePerMeter: pricesFiltered?.at(-1).price / surface
       };
     });
@@ -98,7 +131,9 @@ app.get("/getHouses", jsonParser, async (_, res) => {
     res.send({
       status: "Success",
       houses: filteredHouses,
-      count: filteredHouses.length
+      count: filteredHouses.length,
+      meanSaving,
+      currentMoney
     });
   });
 });

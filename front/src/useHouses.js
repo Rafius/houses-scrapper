@@ -7,11 +7,17 @@ const useHouses = () => {
     asc: false,
     key: "priceChanges"
   });
+  const [currentMoney, setCurrentMoney] = useState(0);
+  const [meanSaving, setMeanSaving] = useState(0);
 
   useEffect(() => {
     const callHousesApi = async () => {
-      const { houses, count } = await fetchApi("http://localhost/getHouses");
+      const { houses, count, currentMoney, meanSaving } = await fetchApi(
+        "http://localhost/getHouses"
+      );
       setHouses(houses);
+      setCurrentMoney(currentMoney);
+      setMeanSaving(meanSaving);
       console.log("casas bajadas de precio", count);
     };
     callHousesApi();
@@ -35,7 +41,9 @@ const useHouses = () => {
   return {
     houses: sortCriteria.asc ? houses.reverse() : houses,
     handleSortCriteriaKey,
-    handleSortCriteriaAsc
+    handleSortCriteriaAsc,
+    currentMoney,
+    meanSaving
   };
 };
 

@@ -35,8 +35,15 @@ const sortCriteriaAsc = [
 ];
 
 function App() {
-  const { houses, handleSortCriteriaKey, handleSortCriteriaAsc } = useHouses();
+  const {
+    houses,
+    handleSortCriteriaKey,
+    handleSortCriteriaAsc,
+    currentMoney,
+    meanSaving
+  } = useHouses();
 
+  if (!houses.length) return <h1>Nothing to show</h1>;
   const priceMean =
     houses.reduce((acc, current) => {
       return acc + current.priceChanges;
@@ -56,7 +63,12 @@ function App() {
       />
       <div className="houses-container">
         {houses?.map((item, index) => (
-          <HouseCard {...item} key={index} />
+          <HouseCard
+            {...item}
+            key={index}
+            currentMoney={currentMoney}
+            meanSaving={meanSaving}
+          />
         ))}
       </div>
     </div>
